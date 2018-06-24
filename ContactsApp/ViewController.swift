@@ -25,9 +25,14 @@ class ViewController: UIViewController {
     
     //MARK: - Private Methods
     private func setupData() {
-        twoDimensionallArray = [ExpandableNames(names: ["asdfasdf", "xcger"], isExpandable: true),
-                                ExpandableNames(names: ["fasdf", "sdfsdf", "sdfas", "asdfet", "asdfa", "gadrv"], isExpandable: true),
-                                ExpandableNames(names: ["asdt", "fghv", "hfyj", "rtwrt"], isExpandable: true)]
+        twoDimensionallArray = [ExpandableNames(names: [Contact(name: "asdt", hasFavorited: false),
+                                                        Contact(name: "asdfasdf", hasFavorited: false)], isExpandable: true),
+                                ExpandableNames(names: [Contact(name: "fasdf", hasFavorited: false),
+                                                        Contact(name: "sdfsdf", hasFavorited: false)], isExpandable: true),
+                                ExpandableNames(names: [Contact(name: "fghv", hasFavorited: false),
+                                                        Contact(name: "rtwrt", hasFavorited: false)], isExpandable: true),
+                                ExpandableNames(names: ["Sergey", "Alexy", "Oleg", "Alexande", "Roma", "Evganiy"].map { Contact(name: $0, hasFavorited: false) }, isExpandable: true)]
+        
     }
     
     private func setupNabigationBar() {
@@ -48,7 +53,7 @@ class ViewController: UIViewController {
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: Identifier)
+        tableView.registerCell(ContactCell.self)
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -92,7 +97,6 @@ class ViewController: UIViewController {
             tableView.deleteRows(at: indexPaths, with: .fade)
         }
     }
-    
 }
 
 
@@ -128,13 +132,37 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Identifier, for: indexPath)
-        let item = twoDimensionallArray[indexPath.section].names[indexPath.row]
-        cell.textLabel?.text = item
+        let cell = tableView.dequeueCell(ContactCell.self)
+        let contact = twoDimensionallArray[indexPath.section].names[indexPath.row]
         
+        cell.delegate = self
+        cell.textLabel?.text = contact.name
+        
+        cell.accessoryView?.tintColor = contact.hasFavorited ? .red : .gray
+       
         if showIndexPaths {
-           cell.textLabel?.text = "\(item) Section \(indexPath.section) Row \(indexPath.row)"
+           cell.textLabel?.text = "\(contact.name) Section \(indexPath.section) Row \(indexPath.row)"
         }
         return cell
     }
+}
+
+extension ViewController: ContactCellDelegate {
+    
+    func starButtonPressed(cell: UITableViewCell) {
+        guard let indexPath = tableView.indexPath(for: cell) else { return }
+        let isFavorited = !twoDimensionallArray[indexPath.section].names[indexPath.row].hasFavorited
+        twoDimensionallArray[indexPath.section].names[indexPath.row].hasFavorited = isFavorited
+        
+//        tableView.reloadRows(at: [indexPath], with: .none)
+        cell.accessoryView?.tintColor = isFavorited ? .red : .lightGray
+    }
+    
+    
+    
+    
+    
+    
+    
+    
 }
