@@ -7,35 +7,71 @@
 //
 
 import UIKit
+import Contacts
 
 class ViewController: UIViewController {
     
     private let Identifier = "Cell"
     
-    private var twoDimensionallArray = [ExpandableNames]()
+    private var twoDimensionallArray = [ExpandableNames]() {
+        didSet {
+            DispatchQueue.main.async {
+               self.tableView.reloadData()
+            }
+        }
+    }
     private var tableView = UITableView(frame: .zero, style: .plain)
     private var showIndexPaths = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
-        setupData()
-        setupNabigationBar()
+        setupNavigationBar()
+        fecthContacts()
+    }
+    
+     //MARK: - Api
+    private func fecthContacts() {
+        let store = CNContactStore()
+        store.requestAccess(for: .contacts) { (granted, error) in
+            if let error = error {
+                print("Failed to request access:", error)
+                return
+            }
+            
+            if granted {
+                print("Access granted")
+                
+                let keys = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactPhoneNumbersKey, CNContactThumbnailImageDataKey]
+                let request = CNContactFetchRequest(keysToFetch: keys as [CNKeyDescriptor])
+                
+                do {
+                    var favoritableContacts = [FavoritableContact]()
+                    try store.enumerateContacts(with: request, usingBlock: { contact, stopPoint in
+                        print(contact.givenName)
+                        print(contact.familyName)
+                        print(contact.phoneNumbers.first?.value.stringValue ?? "")
+                        print(contact.thumbnailImageData)
+                    
+                        favoritableContacts.append(FavoritableContact(contact: contact, hasFavorited: false))
+                    })
+                    
+                    let names = ExpandableNames(names: favoritableContacts, isExpandable: true)
+                    self.twoDimensionallArray = [names]
+                    
+                } catch let error {
+                    print("Failed to request access:", error)
+                }
+
+            } else {
+                print("Access denied")
+            }
+            
+        }
     }
     
     //MARK: - Private Methods
-    private func setupData() {
-        twoDimensionallArray = [ExpandableNames(names: [Contact(name: "asdt", hasFavorited: false),
-                                                        Contact(name: "asdfasdf", hasFavorited: false)], isExpandable: true),
-                                ExpandableNames(names: [Contact(name: "fasdf", hasFavorited: false),
-                                                        Contact(name: "sdfsdf", hasFavorited: false)], isExpandable: true),
-                                ExpandableNames(names: [Contact(name: "fghv", hasFavorited: false),
-                                                        Contact(name: "rtwrt", hasFavorited: false)], isExpandable: true),
-                                ExpandableNames(names: ["Sergey", "Alexy", "Oleg", "Alexande", "Roma", "Evganiy"].map { Contact(name: $0, hasFavorited: false) }, isExpandable: true)]
-        
-    }
-    
-    private func setupNabigationBar() {
+    private func setupNavigationBar() {
         title = "Contacts"
         navigationItem.title = "Contacts"
         navigationController?.navigationBar.prefersLargeTitles = true
@@ -133,15 +169,21 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueCell(ContactCell.self)
-        let contact = twoDimensionallArray[indexPath.section].names[indexPath.row]
-        
+        let favoritableContact = twoDimensionallArray[indexPath.section].names[indexPath.row]
         cell.delegate = self
-        cell.textLabel?.text = contact.name
+        let contactName: String = favoritableContact.contact.givenName + " " + favoritableContact.contact.familyName
         
-        cell.accessoryView?.tintColor = contact.hasFavorited ? .red : .gray
+        if let contactAvatar = favoritableContact.contact.thumbnailImageData {
+            cell.imageView?.layer.cornerRadius = (cell.imageView?.bounds.width)! / 2
+            cell.imageView?.layer.masksToBounds = true
+            cell.imageView?.image = UIImage(data: contactAvatar)
+        }
+        cell.textLabel?.text = contactName
+        cell.detailTextLabel?.text = favoritableContact.contact.phoneNumbers.first?.value.stringValue
+        cell.accessoryView?.tintColor = favoritableContact.hasFavorited ? .red : .gray
        
         if showIndexPaths {
-           cell.textLabel?.text = "\(contact.name) Section \(indexPath.section) Row \(indexPath.row)"
+           cell.textLabel?.text = "\(contactName) Section \(indexPath.section) Row \(indexPath.row)"
         }
         return cell
     }

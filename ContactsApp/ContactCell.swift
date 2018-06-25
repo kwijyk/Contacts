@@ -16,8 +16,10 @@ class ContactCell: UITableViewCell {
 
     var delegate: ContactCellDelegate?
     
+
     override func awakeFromNib() {
         super.awakeFromNib()
+        selectionStyle = .none
         let starButton = UIButton(type: .system)
         starButton.setImage(#imageLiteral(resourceName: "Star"), for: .normal)
         starButton.frame = CGRect(x: 0, y: 0, width: 20, height: 20)

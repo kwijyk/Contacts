@@ -65,13 +65,13 @@
 				840BE86F20DE6B380038100F /* AppDelegate.swift */,
 				840BE88320DF0C540038100F /* UITableView+Extansion.swift */,
 				8401994920DF70D9009864BE /* ContactCell.swift */,
+				8401994A20DF70D9009864BE /* ContactCell.xib */,
 				840BE88120DEFD8E0038100F /* ExpandableNames.swift */,
 				840BE87120DE6B380038100F /* ViewController.swift */,
 				840BE87320DE6B380038100F /* Main.storyboard */,
 				840BE87620DE6B3C0038100F /* Assets.xcassets */,
 				840BE87820DE6B3C0038100F /* LaunchScreen.storyboard */,
 				840BE87B20DE6B3C0038100F /* Info.plist */,
-				8401994A20DF70D9009864BE /* ContactCell.xib */,
 			);
 			path = ContactsApp;
 			sourceTree = "<group>";
